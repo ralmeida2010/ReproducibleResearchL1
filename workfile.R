@@ -90,6 +90,27 @@ filled_data <- filled_data[, !(names(filled_data) %in% c("steps.mean"))]
 
 
 
+# Calculate mean for each 5-minute interval
+mean_data <- data %>%
+        group_by(date) %>%
+        summarise(mean_steps = round(mean(steps, na.rm = TRUE)))
+
+# Merge mean_interval with original dataset to fill missing values
+filled_data <- data %>%
+        left_join(mean_data, by = "date") %>%
+        mutate(steps = ifelse(is.na(steps), mean_steps, steps)) %>%
+        select(-mean_steps)
+
+# Calculate mean for each 5-minute interval
+mean_interval <- data %>%
+        group_by(interval) %>%
+        summarise(mean_steps = round(mean(steps, na.rm = TRUE)))
+
+# Merge mean_interval with original dataset to fill missing values
+filled_data <- data %>%
+        left_join(mean_interval, by = "interval") %>%
+        mutate(steps = ifelse(is.na(steps), mean_steps, steps)) %>%
+        select(-mean_steps)
 
 #Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps
 
@@ -98,6 +119,14 @@ total_steps_per_day_filled <- aggregate(steps ~ date, data = filled_data, FUN = 
 
 # Create histogram
 hist(total_steps_per_day_filled$steps, main = "Total Steps Taken Each Day (Filled Data)", xlab = "Total Steps", col = "skyblue", border = "black")
+
+
+# Create a time series plot
+ggplot(total_steps_per_day_filled, aes(x = interval, y = steps)) +
+        geom_line() +
+        labs(title = "Average Number of Steps Taken (across all days) by 5-minute Interval",
+             x = "5-minute Interval",
+             y = "Average Steps")
 
 # Calculate mean and median
 mean_filled <- mean(total_steps_per_day_filled$steps)
@@ -119,7 +148,7 @@ filled_data$day_type <- factor(filled_data$day_type, levels = c("weekday", "week
 average_steps_day_type <- aggregate(steps ~ interval + day_type, data = filled_data, FUN = mean)
 
 # Create panel plot
-ggplot(average_steps_day_type, aes(x = interval, y = steps, group = day_type, color = day_type)) +
+ggplot(filled_data, aes(x = interval, y = steps, group = day_type, color = day_type)) +
         geom_line() +
         facet_wrap(~ day_type, ncol = 1) +
         labs(title = "Average Number of Steps Taken by 5-minute Interval",
