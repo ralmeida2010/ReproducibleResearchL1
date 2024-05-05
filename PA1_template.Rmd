@@ -202,6 +202,28 @@ max_average_steps <- max(mean_steps_per_day_filled$steps)
 
 cat("Date ", format(max_date, format = "%Y-%m-%d") , "has the maximum average number of steps:", max_average_steps, "\n")
 
-
 ```
+
+
+```{r differences in activity patterns between weekdays and weekends}
+# Are there differences in activity patterns between weekdays and weekends?
+# Create a new factor variable indicating weekdays and weekends
+
+mean_steps_per_day_filled$Weekday <- weekdays(mean_steps_per_day_filled$date, abbreviate = TRUE) 
+mean_steps_per_day_filled$day_type <- ifelse(weekdays(mean_steps_per_day_filled$date, abbreviate = TRUE) %in% c("sáb", "dom"), "weekend", "weekday") # if the regional setting are in English you must change for c("sat", "sun")
+mean_steps_per_day_filled$day_type <- factor(mean_steps_per_day_filled$day_type, levels = c("weekday", "weekend"))
+
+
+
+# Create panel plot
+ggplot(mean_steps_per_day_filled, aes(x = date, y = steps, group = day_type, color = day_type)) +
+        geom_line() +
+        facet_wrap(~ day_type, ncol = 1) +
+        labs(title = "Average Number of Steps ",
+             x = "Date",
+             y = "Average Steps",
+             color = "Day Type") +
+        theme_minimal()
+
+
 
